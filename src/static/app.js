@@ -3,6 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const totalActivities = document.getElementById("total-activities");
+  const totalParticipants = document.getElementById("total-participants");
+  const totalCapacity = document.getElementById("total-capacity");
+  const availableSpots = document.getElementById("available-spots");
+  let dashboardErrorCount = 0;
+  let dashboardIntervalId;
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -12,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -37,7 +44,30 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
       console.error("Error fetching activities:", error);
+    }
+  }
+
+  async function fetchDashboard() {
+    try {
+      const response = await fetch("/dashboard");
+      const dashboard = await response.json();
+
+      totalActivities.textContent = dashboard.total_activities;
+      totalParticipants.textContent = dashboard.total_participants;
+      totalCapacity.textContent = dashboard.total_capacity;
+      availableSpots.textContent = dashboard.available_spots;
+      dashboardErrorCount = 0;
+    } catch (error) {
+      dashboardErrorCount += 1;
+      if (dashboardErrorCount >= 3 && dashboardIntervalId) {
+        clearInterval(dashboardIntervalId);
+        messageDiv.textContent = "Live dashboard updates are paused. Please refresh the page.";
+        messageDiv.className = "info";
+        messageDiv.classList.remove("hidden");
+      }
+      console.error("Error fetching dashboard:", error);
     }
   }
 
@@ -62,6 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities();
+        fetchDashboard();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -83,4 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize app
   fetchActivities();
+  fetchDashboard();
+  dashboardIntervalId = setInterval(fetchDashboard, 10000);
 });
