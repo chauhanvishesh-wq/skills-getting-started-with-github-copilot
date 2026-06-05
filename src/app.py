@@ -61,11 +61,15 @@ def load_activities_from_excel(path: Path):
         participants_list = []
         if participants:
             participants_list = [email.strip() for email in str(participants).split(",") if email.strip()]
+        try:
+            max_participants_value = max(int(max_participants), len(participants_list), 1)
+        except (TypeError, ValueError):
+            max_participants_value = max(len(participants_list), 1)
 
         loaded_activities[str(name)] = {
             "description": str(description or ""),
             "schedule": str(schedule or ""),
-            "max_participants": int(max_participants or 0),
+            "max_participants": max_participants_value,
             "participants": participants_list,
         }
 

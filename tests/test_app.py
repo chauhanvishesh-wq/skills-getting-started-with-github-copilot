@@ -9,6 +9,8 @@ def test_load_activities_from_excel(tmp_path):
     sheet = workbook.active
     sheet.append(["name", "description", "schedule", "max_participants", "participants"])
     sheet.append(["Robotics Club", "Build robots", "Wednesday, 4:00 PM", 10, "a@school.edu, b@school.edu"])
+    sheet.append(["Debate Club", "Debate skills", "Thursday, 3:00 PM", "invalid", "c@school.edu"])
+    sheet.append(["Art Club", "Painting", "Friday, 1:00 PM", "invalid", None])
 
     excel_file = tmp_path / "activities.xlsx"
     workbook.save(excel_file)
@@ -17,6 +19,8 @@ def test_load_activities_from_excel(tmp_path):
 
     assert loaded["Robotics Club"]["max_participants"] == 10
     assert loaded["Robotics Club"]["participants"] == ["a@school.edu", "b@school.edu"]
+    assert loaded["Debate Club"]["max_participants"] == 1
+    assert loaded["Art Club"]["max_participants"] == 1
 
 
 def test_dashboard_endpoint_totals():

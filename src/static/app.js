@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalParticipants = document.getElementById("total-participants");
   const totalCapacity = document.getElementById("total-capacity");
   const availableSpots = document.getElementById("available-spots");
+  let dashboardErrorCount = 0;
+  let dashboardIntervalId;
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -42,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
       console.error("Error fetching activities:", error);
     }
   }
@@ -55,7 +58,15 @@ document.addEventListener("DOMContentLoaded", () => {
       totalParticipants.textContent = dashboard.total_participants;
       totalCapacity.textContent = dashboard.total_capacity;
       availableSpots.textContent = dashboard.available_spots;
+      dashboardErrorCount = 0;
     } catch (error) {
+      dashboardErrorCount += 1;
+      if (dashboardErrorCount >= 3 && dashboardIntervalId) {
+        clearInterval(dashboardIntervalId);
+        messageDiv.textContent = "Live dashboard updates are paused. Please refresh the page.";
+        messageDiv.className = "info";
+        messageDiv.classList.remove("hidden");
+      }
       console.error("Error fetching dashboard:", error);
     }
   }
@@ -105,5 +116,5 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize app
   fetchActivities();
   fetchDashboard();
-  setInterval(fetchDashboard, 5000);
+  dashboardIntervalId = setInterval(fetchDashboard, 10000);
 });
