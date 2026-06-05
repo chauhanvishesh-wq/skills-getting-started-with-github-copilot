@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const totalActivities = document.getElementById("total-activities");
+  const totalParticipants = document.getElementById("total-participants");
+  const totalCapacity = document.getElementById("total-capacity");
+  const availableSpots = document.getElementById("available-spots");
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -12,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -41,6 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function fetchDashboard() {
+    try {
+      const response = await fetch("/dashboard");
+      const dashboard = await response.json();
+
+      totalActivities.textContent = dashboard.total_activities;
+      totalParticipants.textContent = dashboard.total_participants;
+      totalCapacity.textContent = dashboard.total_capacity;
+      availableSpots.textContent = dashboard.available_spots;
+    } catch (error) {
+      console.error("Error fetching dashboard:", error);
+    }
+  }
+
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -62,6 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities();
+        fetchDashboard();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -83,4 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize app
   fetchActivities();
+  fetchDashboard();
+  setInterval(fetchDashboard, 5000);
 });
